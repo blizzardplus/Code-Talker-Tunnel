@@ -1,0 +1,42 @@
+#Properties are not case sensitive, fully qualified file paths are prefrred
+
+#DATA SECTION
+#Morphing method: 1 means Traffic Morphing and 2 means Naive shaping.(0 has no effect on the traffic)
+morphingmethod 1
+#This is the morphing matrix produced by the morpher package
+morphingmatrix data/matrix_tor_sc_to_skype_video.mtx 
+#CDF of Skype packet sizes
+skypesizecdf data/size_CDF
+#CDF of Skype inter-packet delays
+skypetimecdf data/time_CDF
+#CDF of Tor packet sizes, used for sampling in traffic morphing 
+torsizecdf data/tor_sc_CDF 
+
+#NETWORK SETTING
+#Our IP address: Make sure this is correct and has the actuall IP address (especially for iptable rules).
+#You can easily find your ip by visiting http://whatismyip.com
+IPAdr 127.0.0.1
+#UDP port for relaying
+UDPPort 33333 
+
+#SKYPE SETTING
+#Skype user ID
+SkypeID  MY_SKYPE_ID
+#Skype password
+Skypepwd MY_SKYPE_PASSWORD
+
+#SKYPE RUNTIME SETTINGS -> IGNORE IF YOU ARE USING PUBLIC API 
+#Skype runtime IP address
+SkrtIP 127.0.0.1
+#Skype runtime port
+skrtport 30000
+#Skype key pairs address
+keyfilename tkclient.pem
+#Address to SkypeKit runtime
+SkypeKitAdr runtime/bin/linux-x86/linux-x86-skypekit-novideo
+
+#TOR SETTING
+#Tor bridge IP address
+TorAddr 127.0.0.1
+#Our remote port we are relaying to.(Tor OR port)
+TorPort 9006

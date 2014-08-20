@@ -1,0 +1,12 @@
+Changes between 0.5.2 and 0.5.3  [3 Nov 2012]
+Fixed multiple connection problem
+Fixed small message authentication
+
+
+Changes between 0.5.2 and 0.5.3  [2 Oct 2012]
+Added iptale rules for smooth transfer between Skype and CodeTalkerTunnel
+
+
+Changes between 0.5.1 and 0.5.2
+Added Skype Public API to use Skype
+Cleaned up configuration file, now every setting should be added to config files

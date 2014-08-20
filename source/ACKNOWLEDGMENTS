@@ -1,0 +1,5 @@
+This project uses some code from the following projects: 
+
+traffic morphing - https://gitorious.org/morpher/morpher
+
+curve25519-donna - http://code.google.com/p/curve25519-donna/

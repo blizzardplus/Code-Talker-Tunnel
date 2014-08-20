@@ -1,0 +1,188 @@
+Code-Talker-Tunnel-0.5.4
+November 2012
+
+Hooman Mohajeri <hmohajer@cs.uwaterloo.ca>
+Baiyu Li <b5li@cs.uwaterloo.ca>
+
+A tool that disguises Tor client<->bridge traffic as a Skype video conversation.
+
+1. How to setup
+
+1.1. Linux
+
+Code-Talker-Tunnel needs to communicate with a Skype runtime running on your system. There are two options available for the choice of runtime. You can either use SkypeKit (the development SDK and runtime provided to developers through Skype developers subscription) or use Skype Public APIs that allows you to use a running instance of Skype application through Inter-process communication (IPC) mechanisms.
+
+1.1.1. SkypeKit
+
+SkypeKit(http://developer.skype.com/public/skypekit): is a development kit provided by Skype and it consists of two part:
+
+1-SkypeKit runtime: which has almost all the capabilities of the Skype software but does not have a GUI instead it runs in the command line.
+2-SkypeKit APIs: These are the APIs that allow developers to communicate with the runtime and are currently available for C++, JAVA and Python.
+
+**How to obtain SkypeKit runtime and API headers:
+
+Before you start make sure you have a valid Skype ID and that you have at least  U.S.$5 as Skype credit in your account.
+In order to obtain the SkypeKit runtime and APIs, simply visit the following website:
+https://developer.skype.com/signup
+
+After you log in with you Skype credentials you will be redirected to a webpage to create an account for your organization. Just fill out the form and click submit.
+After you created your account, you can visit http://developer.skype.com/account/projects
+to get the SkypeKit for Desktop by paying the fee (currently U.S.$5) with your Skype credit.
+Now you can access http://developer.skype.com/skypekit/releases
+to get the latest runtime and SDK for SkypeKit Desktop.
+
+You can choose between different runtimes based on your operating system and system architecture. For example linux-x86-skypekit-novideo is a suitable choice for a linux operating system running on x86 architecture. Once downloaded, unzip the file in a folder, and call the address to the runtime executable $RUNTIME_ADR for future reference.
+
+
+Also choose SkypeKit SDK for Desktop, download and extract the file into a folder called $SDK_DIR.
+
+Then run the following script(you will need CMAKE):
+
+$SDK_DIR/interfaces/skype/cpp_embedded/BuildWithCmake.sh
+
+
+**Key pairs:
+
+You are going to need a pair of keys before you can log in with SkypeKit. To obtain the keys use the following menu: “My Tools & Downloads -> My projects"
+Then choose your project, and select  "Development key pair" and download the keys. The file should be stored on your system and the address to the key file will be referred to as $KEYPAIR_ADR.
+
+1.1.2. Skype Public API
+
+Currently to use Skype Public API you need "glib" and "dbus-glib" libraries. To configure for Skype Public API use "--with-public-api" with configure.
+
+**** NOTE: Skype application needs to run on the same port as Code-Talker-Tunnel application. To do this either change the UDP port used by Code-Talker-Tunnel using "UDPPort" option in config file as described in Section 2.1 or change Skype port in Skype application under "Options->Advanced->Port used for incoming connection" menu to match the "UDPPort" option in config file.
+
+
+1.1.3. CyaSSL:
+
+Download and extract the latest version of CyaSSL cryptography library from https://github.com/cyassl/cyassl.git and use the following command to make:
+./autogen.sh && ./configure --prefix=$CYASSL_DIR --enable-fortress && make && make install
+
+where $CYASSL_DIR is the directory holding the CyaSSL libarary.
+
+
+*** NOTE: There is a problem with recent versions of CyaSSL, so it is strongly recommended to get CyaSSL 2.3.0 package or use commits on the github before the following commit: c2cf1fb708119fe7ff4afb30159513aa0395b47b
+
+A probably good commit would be the following:
+https://github.com/cyassl/cyassl/commit/59e4c346f0025c26e4304a001954ea6722ab7db8
+
+1.1.4. Boost libraries:
+You must have the following boost packages:
+libboost-thread-dev
+libboost-system-dev
+
+
+1.1.5. Build and install
+Now you are ready to use the Code-Talker-Tunnel.
+
+1.1.5.1 Normal build:
+
+We will assume INSTALL_FOLDER indicates the installation folder. To build use:
+
+./configure --prefix="INSTALL_FOLDER" --with-cyassl-include=$CYASSL_DIR/cyassl/include --with-cyassl-lib=$CYASSL_DIR/cyassl/lib --with-skypekit-tree=$SDK_DIR && make
+
+1.1.5.2 Build with IPTABLE rules:
+
+With this you can have seamless port forwarding using iptable rules (requires root):
+
+To build with iptable rules:
+
+./configure --prefix="INSTALL_FOLDER" --with-tproxy --with-cyassl-include=$CYASSL_DIR/cyassl/include --with-cyassl-lib=$CYASSL_DIR/cyassl/lib --with-skypekit-tree=$SDK_DIR && make
+
+1.1.5.3 OpenWRT
+
+iptable rules can be edited on home routers with OpenWRT installed on them. To enable building for OpenWRT systems use --with-openwrt.
+The router should be running iprule-server application to respond to requests. Please consult openwrt folder on how to compile and run the server on your router.
+
+1.1.5.4 Install:
+To install (might require root depending whether iptable rules are specified):
+
+make install
+__________________________________________
+
+
+
+1.2. Windows
+
+You can cross compile on a Linux system for Windows platforms (which should only be used in conjunction with OpenWrt described in section 1.1.5.3.). In order to do that, you need to follow these steps:
+
+1.2.1. Install MinGW. On Ubutnu you can use the following command for example:
+
+sudo apt-get install mingw32 mingw32-binutils
+
+Also you need to download MinGW on your Windows platform to get the "mingwm10.dll" required for running codes compiled with MinGW.
+
+1.2.2. Compile CyaSSL library using instructions from section 1.1.3. but use the following line to configure and compile:
+
+./autogen.sh && ./configure --prefix=$CYASSL_DIR --enable-fortress --host=i586-mingw32msvc && make && make install
+
+This will create the DLL file.
+**Note that you might have to add LDFLAGS=-lws2_32′ and remove the -Werror option in the Makefile before you can compile it using MinGW. 
+
+1.2.3. Using the following instructions you can build boost libraries with MinGW (taken from http://www.vle-project.org/wiki/Cross_compilation_Win32):
+
+First unzip the boost zip file, then 
+ 
+./bootstrap.sh --without-icu
+echo "using gcc : 4.4 : i586-mingw32msvc-g++
+        :
+        <rc>i586-mingw32msvc-windres
+        <archiver>i586-mingw32msvc-ar
+;" > user-config.jam
+ 
+./bjam toolset=gcc target-os=windows variant=release threading=multi threadapi=win32\
+    link=shared runtime-link=shared --prefix=$BOOST_DIR --user-config=user-config.jam -j 2\
+    --without-mpi --without-python -sNO_BZIP2=1 -sNO_ZLIB=1 --layout=tagged install
+
+
+
+This will create required DLL files including libboost_system-mt.dll and libboost_thread_win32-mt.dll
+
+1.2.4. To build and install use the following commands
+
+./configure --with-public-api  --with-openwrt --prefix="INSTALL_FOLDER" --with-cyassl-include=`pwd`/cyassl/include --with-cyassl-lib=$CYASSL_DIR/cyassl/lib --with-boost-include=$BOOST_DIR/install/include --with-boost-lib=$BOOST_DIR/install/lib --host=i586-mingw32msvc && make
+
+
+_________________________________________________
+
+2. Config files
+
+2.1. Code-Talker-Tunnel config files
+
+Modify the config files clientrc/serverrc file in the root directory of Code-Talker-Tunnel as follows:
+IPAdr YOUR_EXTERNAL_IP_ADDRESS ----> MAKE SURE THIS IS CORRECT OTHERWISE IPTABLE RULES WON'T WORK
+SkypeID  YOUR_SKYPE_ID
+Skypepwd YOUR_SKYPE_PASSWORD
+SkypeKitAdr $RUNTIME_ADR
+KeyFileName $KEYPAIR_ADR
+
+For clientrc file also add:
+ServerID SERVER_SKYPE_ID
+
+2.2. Tor config files
+
+2.2.1. Tor Bridge
+
+If you are running a bridge set the "ORListenAddress" option to appropriate IP address and port so that clients can use it.
+
+2.2.2. Tor client
+
+Set the following option "Bridge IP_ADDRESS:PORT_NUMBER" to the bridge IP address and port number. If the bridge you are going to use resides on the same machine that runs Code-Talker-Tunnel server use "Bridge 0.0.0.0:PORT_NUMBER". Also set "Socks5Proxy" line to 127.0.0.1:SOCKS_PORT, where SOCKS_PORT is the socks port specified in the Code-Talker-Tunnel config file. 
+
+__________________________________________
+
+
+3. How to run
+
+* NOTE: currently we need the client and the bridge to be friend on Skype or they will not receive any message from each other. This will be fixed soon.
+
+**** NOTE: If you are using OpenWrt option or Public API, Skype application needs to run on the same port as Code-Talker-Tunnel application. To do this either change the UDP port used by Code-Talker-Tunnel using "UDPPort" option in config file as described in Section 2.1 or change Skype port in Skype application under "Options->Advanced->Port used for incoming connection" menu to match the "UDPPort" option in config file.
+
+
+To run find bin folder and use:
+
+smclient -k configFiles/clientrc   (on the client side)
+
+smserver -k configFiles/serverrc   (on the bridge side)
+
+
